@@ -96,6 +96,8 @@ export namespace solidity {
 
         fromSource(...args: any[]): void;
 
+        getContracts(...args: any[]): Contract[];
+
         getSource(...args: any[]): void;
 
         parseAst(...args: any[]): void;

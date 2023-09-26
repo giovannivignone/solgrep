@@ -31,6 +31,10 @@ class SourceUnit {
     return this.content;
   }
 
+  getContracts() {
+    return this.contracts;
+  }
+
   static getFileContent(fpath) {
     if (!fs.existsSync(fpath)) {
       throw Error(`File '${fpath}' does not exist.`);
