@@ -75,3 +75,36 @@ export namespace rules {
 
 }
 
+export namespace solidity {
+    class Contract {
+        constructor(...args: any[]);
+
+        getSource(...args: any[]): void;
+
+        helloWorld(...args: any[]): void;
+
+        toJSON(...args: any[]): void;
+
+    }
+
+    class SourceUnit {
+        constructor(...args: any[]);
+
+        clone(...args: any[]): void;
+
+        fromFile(...args: any[]): void;
+
+        fromSource(...args: any[]): void;
+
+        getSource(...args: any[]): void;
+
+        parseAst(...args: any[]): void;
+
+        toJSON(...args: any[]): void;
+
+        static getFileContent(...args: any[]): void;
+
+    }
+
+}
+
