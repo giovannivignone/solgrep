@@ -123,12 +123,12 @@ class Contract {
     this._processAst(node);
   }
 
-  helloWorld() {
-    console.log('hello world');
-  }
-
   toJSON() {
     return this.ast;
+  }
+
+  getFunctions() {
+    return this.functions;
   }
 
   getSource() {
@@ -297,4 +297,5 @@ class FunctionDef {
 module.exports = {
   SourceUnit,
   Contract,
+  FunctionDef,
 };

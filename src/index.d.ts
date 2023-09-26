@@ -79,11 +79,22 @@ export namespace solidity {
     class Contract {
         constructor(...args: any[]);
 
+        getFunctions(...args: any[]): FunctionDef[];
+
         getSource(...args: any[]): void;
 
-        helloWorld(...args: any[]): void;
-
         toJSON(...args: any[]): void;
+
+    }
+
+    class FunctionDef {
+        constructor(...args: any[]);
+
+        callsTo(...args: any[]): void;
+
+        getFunctionCalls(...args: any[]): void;
+
+        getSource(...args: any[]): void;
 
     }
 
@@ -96,7 +107,7 @@ export namespace solidity {
 
         fromSource(...args: any[]): void;
 
-        getContracts(...args: any[]): Contract[];
+        getContracts(...args: any[]): void;
 
         getSource(...args: any[]): void;
 
