@@ -4,9 +4,11 @@
  * */
 const {SolGrep} = require('./solgrep');
 const rules = require('../src/rules');
+const solidity = require('../src/solidity');
 
 
 module.exports = {
     SolGrep,
-    rules
+    rules,
+    solidity
 }

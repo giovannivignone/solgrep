@@ -31,6 +31,14 @@ class SourceUnit {
     return this.content;
   }
 
+  /**
+   *
+   * @returns {Contract[]}
+   */
+  getContracts() {
+    return Object.values(this.contracts);
+  }
+
   static getFileContent(fpath) {
     if (!fs.existsSync(fpath)) {
       throw Error(`File '${fpath}' does not exist.`);
@@ -119,12 +127,16 @@ class Contract {
     this._processAst(node);
   }
 
-  helloWorld() {
-    console.log('hello world');
-  }
-
   toJSON() {
     return this.ast;
+  }
+
+  /**
+   *
+   * @returns {FunctionDef[]}
+   */
+  getFunctions() {
+    return this.functions;
   }
 
   getSource() {
@@ -241,6 +253,16 @@ class FunctionDef {
     }
   }
 
+  /**
+   * @returns {string}
+   */
+  getName() {
+    return this.name;
+  }
+
+  /**
+   * @returns {string}
+   */
   getSource() {
     return this.contract.sourceUnit.content
       .split('\n')
@@ -293,4 +315,5 @@ class FunctionDef {
 module.exports = {
   SourceUnit,
   Contract,
+  FunctionDef,
 };
