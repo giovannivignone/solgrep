@@ -31,8 +31,12 @@ class SourceUnit {
     return this.content;
   }
 
+  /**
+   *
+   * @returns {Contract[]}
+   */
   getContracts() {
-    return this.contracts;
+    return Object.values(this.contracts);
   }
 
   static getFileContent(fpath) {
@@ -127,6 +131,10 @@ class Contract {
     return this.ast;
   }
 
+  /**
+   *
+   * @returns {FunctionDef[]}
+   */
   getFunctions() {
     return this.functions;
   }
@@ -245,6 +253,16 @@ class FunctionDef {
     }
   }
 
+  /**
+   * @returns {string}
+   */
+  getName() {
+    return this.name;
+  }
+
+  /**
+   * @returns {string}
+   */
   getSource() {
     return this.contract.sourceUnit.content
       .split('\n')
