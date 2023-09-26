@@ -81,7 +81,7 @@ export namespace solidity {
 
         getFunctions(...args: any[]): FunctionDef[];
 
-        getSource(...args: any[]): void;
+        getSource(...args: any[]): string;
 
         toJSON(...args: any[]): void;
 
@@ -94,7 +94,9 @@ export namespace solidity {
 
         getFunctionCalls(...args: any[]): void;
 
-        getSource(...args: any[]): void;
+        getName(...args: any[]): string;
+
+        getSource(...args: any[]): string;
 
     }
 
@@ -107,9 +109,9 @@ export namespace solidity {
 
         fromSource(...args: any[]): void;
 
-        getContracts(...args: any[]): void;
+        getContracts(...args: any[]): Contract[];
 
-        getSource(...args: any[]): void;
+        getSource(...args: any[]): string;
 
         parseAst(...args: any[]): void;
 
