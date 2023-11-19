@@ -117,205 +117,229 @@ class SourceUnit {
 }
 
 class Contract {
-    constructor(sourceUnit, node) {
-        this.sourceUnit = sourceUnit;
-        this.ast = node;
-        this.name = node.name;
-        this.dependencies = node.baseContracts.map(spec => spec.baseName.namePath);
+  constructor(sourceUnit, node) {
+    this.sourceUnit = sourceUnit;
+    this.ast = node;
+    this.name = node.name;
+    this.dependencies = node.baseContracts.map(
+      (spec) => spec.baseName.namePath
+    );
 
-        this.stateVars = {};  // pure statevars --> see names
-        this.enums = {};  // enum declarations
-        this.structs = {}; // struct declarations
-        this.mappings = {};  // mapping declarations
-        this.modifiers = {};  // modifier declarations
-        this.functions = [];  // function and method declarations; can be overloaded
-        this.constructor = null;  // ...
-        this.fallback = null;  // ...
-        this.receiveEther = null; // ...
-        this.events = [];  // event declarations; can be overloaded
-        this.inherited_names = {};  // all names inherited from other contracts
-        this.names = {};   // all names in current contract (methods, events, structs, ...)
-        this.usingFor = {}; // using XX for YY
+    this.stateVars = {}; // pure statevars --> see names
+    this.enums = {}; // enum declarations
+    this.structs = {}; // struct declarations
+    this.mappings = {}; // mapping declarations
+    this.modifiers = {}; // modifier declarations
+    this.functions = []; // function and method declarations; can be overloaded
+    this.constructor = null; // ...
+    this.fallback = null; // ...
+    this.receiveEther = null; // ...
+    this.events = []; // event declarations; can be overloaded
+    this.inherited_names = {}; // all names inherited from other contracts
+    this.names = {}; // all names in current contract (methods, events, structs, ...)
+    this.usingFor = {}; // using XX for YY
 
-        this.functionCalls = [];
+    this.functionCalls = [];
 
-        this._processAst(node);
-    }
+    this._processAst(node);
+  }
+  
+  /**
+   * @returns {FunctionDef[]} - the functions of the contract
+   * */
+  getFunctions() {
+    return this.functions;
+  }
 
-    /**
-     * @returns - the AST of the contract
-     * */
-    toJSON() {
-        return this.ast;
-    }
+  /**
+   * @returns - the AST of the contract
+   * */
+  toJSON() {
+    return this.ast;
+  }
 
-    /**
-     * @returns {string} - the source code of the contract
-     * */
-    getSource() {
-        return this.sourceUnit.content.split("\n").slice(this.ast.loc.start.line - 1, this.ast.loc.end.line).join("\n");
-    }
+  /**
+   * @returns {string} - the source code of the contract
+   * */
+  getSource() {
+    return this.sourceUnit.content
+      .split("\n")
+      .slice(this.ast.loc.start.line - 1, this.ast.loc.end.line)
+      .join("\n");
+  }
 
-    _processAst(node) {
+  _processAst(node) {
+    var current_function = null;
+    let current_contract = this;
 
-        var current_function = null;
-        let current_contract = this;
-
-        parser.visit(node, {
-
-            StateVariableDeclaration(_node) {
-                parser.visit(_node, {
-                    VariableDeclaration(__node) {
-                        __node.extra = { usedAt: [] };
-                        current_contract.stateVars[__node.name] = __node;
-                        current_contract.names[__node.name] = __node;
-                    }
-                });
-            },
-            // --> is a subtype. Mapping(_node){current_contract.mappings[_node.name]=_node},
-            Mapping(_node) {
-                current_contract.mappings[_node.name] = _node;
-            },
-            EnumDefinition(_node) {
-                current_contract.enums[_node.name] = _node;
-                current_contract.names[_node.name] = _node;
-            },
-            StructDefinition(_node) {
-                current_contract.structs[_node.name] = _node;
-                current_contract.names[_node.name] = _node;
-            },
-            UsingForDeclaration(_node) {
-                current_contract.usingFor[_node.libraryName] = _node;
-            },
-            ConstructorDefinition(_node) {
-                current_contract.constructor = _node;
-                current_contract.names[_node.name] = _node;
-            }, // wrong def in code: https://github.com/solidityj/solidity-antlr4/blob/fbe865f8ba510cbdb1540fcf9517a42820a4d097/Solidity.g4#L78 for consttuctzor () ..
-            ModifierDefinition(_node) {
-                current_function = new FunctionDef(current_contract, _node, "modifier");
-                current_contract.modifiers[_node.name] = current_function;
-                current_contract.names[_node.name] = current_function;
-            },
-            EventDefinition(_node) {
-                current_function = {
-                    _node: _node,
-                    name: _node.name,
-                    arguments: {},  // declarations: quick access to argument list
-                    declarations: {},  // all declarations: arguments+returns+body
-                };
-                current_contract.events.push(current_function);
-
-                current_contract.names[_node.name] = current_function;
-                // parse function body to get all function scope params.
-                // first get declarations
-                parser.visit(_node.parameters, {
-                    VariableDeclaration: function (__node) {
-                        current_function.arguments[__node.name] = __node;
-                        current_function.declarations[__node.name] = __node;
-                    }
-                });
-
-            },
-            FunctionDefinition(_node) {
-                let newFunc = new Proxy(new FunctionDef(current_contract, _node), prxAttribForwarder);
-                current_contract.functions.push(newFunc);
-                current_contract.names[_node.name] = newFunc;
-            },
-
-            FunctionCall(__node) {
-                current_contract.functionCalls.push(__node);
-            },
+    parser.visit(node, {
+      StateVariableDeclaration(_node) {
+        parser.visit(_node, {
+          VariableDeclaration(__node) {
+            __node.extra = { usedAt: [] };
+            current_contract.stateVars[__node.name] = __node;
+            current_contract.names[__node.name] = __node;
+          },
         });
-    }
+      },
+      // --> is a subtype. Mapping(_node){current_contract.mappings[_node.name]=_node},
+      Mapping(_node) {
+        current_contract.mappings[_node.name] = _node;
+      },
+      EnumDefinition(_node) {
+        current_contract.enums[_node.name] = _node;
+        current_contract.names[_node.name] = _node;
+      },
+      StructDefinition(_node) {
+        current_contract.structs[_node.name] = _node;
+        current_contract.names[_node.name] = _node;
+      },
+      UsingForDeclaration(_node) {
+        current_contract.usingFor[_node.libraryName] = _node;
+      },
+      ConstructorDefinition(_node) {
+        current_contract.constructor = _node;
+        current_contract.names[_node.name] = _node;
+      }, // wrong def in code: https://github.com/solidityj/solidity-antlr4/blob/fbe865f8ba510cbdb1540fcf9517a42820a4d097/Solidity.g4#L78 for consttuctzor () ..
+      ModifierDefinition(_node) {
+        current_function = new FunctionDef(current_contract, _node, "modifier");
+        current_contract.modifiers[_node.name] = current_function;
+        current_contract.names[_node.name] = current_function;
+      },
+      EventDefinition(_node) {
+        current_function = {
+          _node: _node,
+          name: _node.name,
+          arguments: {}, // declarations: quick access to argument list
+          declarations: {}, // all declarations: arguments+returns+body
+        };
+        current_contract.events.push(current_function);
+
+        current_contract.names[_node.name] = current_function;
+        // parse function body to get all function scope params.
+        // first get declarations
+        parser.visit(_node.parameters, {
+          VariableDeclaration: function (__node) {
+            current_function.arguments[__node.name] = __node;
+            current_function.declarations[__node.name] = __node;
+          },
+        });
+      },
+      FunctionDefinition(_node) {
+        let newFunc = new Proxy(
+          new FunctionDef(current_contract, _node),
+          prxAttribForwarder
+        );
+        current_contract.functions.push(newFunc);
+        current_contract.names[_node.name] = newFunc;
+      },
+
+      FunctionCall(__node) {
+        current_contract.functionCalls.push(__node);
+      },
+    });
+  }
 }
 
 class FunctionDef {
-    constructor(contract, node) {
-        this.contract = contract;
-        this.ast = node;
+  constructor(contract, node) {
+    this.contract = contract;
+    this.ast = node;
 
-        if (this.ast.isConstructor) {
-            contract.constructor = this;
-            this.name = "__constructor__"
-        } else if (this.ast.isFallback) {
-            contract.fallback = this;
-            this.name = "__fallback__"
-        } else if (this.ast.isReceiveEther) {
-            contract.receiveEther = this;
-            this.name = "__receiveEther__"
-        } else {
-            this.name = node.name;
-        }
-
-        if (this.ast.isConstructor || !this.ast.modifiers || !this.ast.modifiers.length) {
-            this.modifiers = {}
-        } else {
-
-            this.modifiers = this.ast.modifiers.reduce((a, v) => ({ ...a, [v.name]: v }), {})
-        }
+    if (this.ast.isConstructor) {
+      contract.constructor = this;
+      this.name = "__constructor__";
+    } else if (this.ast.isFallback) {
+      contract.fallback = this;
+      this.name = "__fallback__";
+    } else if (this.ast.isReceiveEther) {
+      contract.receiveEther = this;
+      this.name = "__receiveEther__";
+    } else {
+      this.name = node.name;
     }
 
-    /**
-     * @returns {string} - the source code of the function
-     * */
-    getSource() {
-        return this.contract.sourceUnit.content.split("\n").slice(this.ast.loc.start.line - 1, this.ast.loc.end.line).join("\n");
+    if (
+      this.ast.isConstructor ||
+      !this.ast.modifiers ||
+      !this.ast.modifiers.length
+    ) {
+      this.modifiers = {};
+    } else {
+      this.modifiers = this.ast.modifiers.reduce(
+        (a, v) => ({ ...a, [v.name]: v }),
+        {}
+      );
     }
+  }
 
-    /**
-     * @param {string} funcName - the name of the function this function may call to
-     * @returns {boolean} - true if the function makes a call to funcName
-     * */
-    callsTo(funcName) {
-        return !!this.getFunctionCalls(funcName, { findOne: true }).length;
-    }
+  /**
+   * @returns {string}
+   */
+  getName() {
+    return this.name;
+  }
 
-    /**
-     * @param {string} funcName - the name of the function this function may call to
-     * @param {object} opts - options
-     * @param {boolean} opts.findOne - return after first match
-     * @returns {object[]} - array of function calls
-     * */
-    getFunctionCalls(funcName, opts) {
-        let found = [];
-        opts = opts || {};
-        try {
+  /**
+   * @returns {string} - the source code of the function
+   * */
+  getSource() {
+    return this.contract.sourceUnit.content
+      .split("\n")
+      .slice(this.ast.loc.start.line - 1, this.ast.loc.end.line)
+      .join("\n");
+  }
 
-            parser.visit(this.ast, {
-                FunctionCall(node) {
-                    switch (node.expression.type) {
-                        case "MemberAccess":
-                            if (node.expression.memberName === funcName) {
-                                found.push(node);
-                            }
-                            break;
-                        case "Identifier":
-                            if (node.expression.name === funcName) {
-                                found.push(node);
-                            }
-                            break;
-                        case "TypeNameExpression":
-                            if (node.expression.typeName === funcName) {
-                                found.push(node);
-                            }
-                    }
-                    if (opts.findOne && found.length) {
-                        throw new FindOneExit(); // abort parser
-                    }
-                }
-            });
+  /**
+   * @param {string} funcName - the name of the function this function may call to
+   * @returns {boolean} - true if the function makes a call to funcName
+   * */
+  callsTo(funcName) {
+    return !!this.getFunctionCalls(funcName, { findOne: true }).length;
+  }
 
-        } catch (e) {
-            if (e instanceof FindOneExit) {
-                return found;
-            }
-            throw e;
-        }
-
-
+  /**
+   * @param {string} funcName - the name of the function this function may call to
+   * @param {object} opts - options
+   * @param {boolean} opts.findOne - return after first match
+   * @returns {object[]} - array of function calls
+   * */
+  getFunctionCalls(funcName, opts) {
+    let found = [];
+    opts = opts || {};
+    try {
+      parser.visit(this.ast, {
+        FunctionCall(node) {
+          switch (node.expression.type) {
+            case "MemberAccess":
+              if (node.expression.memberName === funcName) {
+                found.push(node);
+              }
+              break;
+            case "Identifier":
+              if (node.expression.name === funcName) {
+                found.push(node);
+              }
+              break;
+            case "TypeNameExpression":
+              if (node.expression.typeName === funcName) {
+                found.push(node);
+              }
+          }
+          if (opts.findOne && found.length) {
+            throw new FindOneExit(); // abort parser
+          }
+        },
+      });
+    } catch (e) {
+      if (e instanceof FindOneExit) {
         return found;
+      }
+      throw e;
     }
 
+    return found;
+  }
 }
 
 module.exports = {

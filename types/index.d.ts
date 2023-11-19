@@ -1,3 +1,3 @@
-import { SolGrep } from "./solgrep";
-import rules = require("../src/rules");
-export { SolGrep, rules };
+export { SolGrep } from "./solgrep";
+export { SourceUnit, FunctionDef, Contract } from "./solidity";
+export { BaseRule, Stats, GenericGrep } from "./rules/builtin";
