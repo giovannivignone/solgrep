@@ -24,6 +24,11 @@ export class SourceUnit {
    */
   getSource(): string;
   /**
+   *
+   * @returns {Contract[]}
+   */
+  getContracts(): Contract[];
+  /**
    * @returns the AST of the source unit
    * */
   toJSON(): SourceUnit & {
