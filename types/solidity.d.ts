@@ -1,4 +1,4 @@
-import { SourceUnit as ParserSourceUnit } from "@solidity-parser/parser/dist/src/ast-types";
+import { ASTNode, SourceUnit as ParserSourceUnit } from "@solidity-parser/parser/dist/src/ast-types";
 import { Token } from "@solidity-parser/parser/dist/src/types";
 
 export class SourceUnit {
@@ -101,5 +101,5 @@ export class FunctionDef {
     opts: {
       findOne: boolean;
     }
-  ): object[];
+  ): ASTNode[];
 }
