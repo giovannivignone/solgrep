@@ -21,7 +21,7 @@ const prxAttribForwarder = {
 class SourceUnit {
   constructor() {
     this.filePath = undefined;
-    this.ast = undefined; 
+    this.ast = undefined;
     this.content = undefined;
     this.contracts = {};
     this.pragmas = [];
@@ -33,6 +33,14 @@ class SourceUnit {
    */
   getSource() {
     return this.content;
+  }
+
+  /**
+   *
+   * @returns {Contract[]}
+   */
+  getContracts() {
+    return Object.values(this.contracts);
   }
 
   /**
@@ -48,9 +56,9 @@ class SourceUnit {
     return { filePath, content };
   }
 
-    /**
-     * @returns the AST of the source unit
-     * */
+  /**
+   * @returns the AST of the source unit
+   * */
   toJSON() {
     return this.ast;
   }
