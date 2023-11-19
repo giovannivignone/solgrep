@@ -1,4 +1,7 @@
-import { ASTNode, SourceUnit as ParserSourceUnit } from "@solidity-parser/parser/dist/src/ast-types";
+import {
+  ASTNode,
+  SourceUnit as ParserSourceUnit,
+} from "@solidity-parser/parser/dist/src/ast-types";
 import { Token } from "@solidity-parser/parser/dist/src/types";
 
 export class SourceUnit {
@@ -66,9 +69,13 @@ export class Contract {
   usingFor: {};
   functionCalls: any[];
   /**
+   * @returns {FunctionDef[]} - the functions of the contract
+   * */
+  getFunctions(): FunctionDef[];
+  /**
    * @returns - the AST of the contract
    * */
-  toJSON(): object;
+  toJSON(): ASTNode;
   /**
    * @returns {string} - the source code of the contract
    * */
@@ -81,6 +88,10 @@ export class FunctionDef {
   ast: any;
   name: any;
   modifiers: any;
+  /**
+   * @returns {string}
+   */
+  getName(): string;
   /**
    * @returns {string} - the source code of the function
    * */
