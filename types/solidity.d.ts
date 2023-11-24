@@ -1,11 +1,11 @@
 import {
   ASTNode,
   SourceUnit as ParserSourceUnit,
-} from "@solidity-parser/parser/dist/src/ast-types";
-import { Token } from "@solidity-parser/parser/dist/src/types";
+} from '@solidity-parser/parser/dist/src/ast-types';
+import { Token } from '@solidity-parser/parser/dist/src/types';
 
 export class SourceUnit {
-    constructor();
+  constructor();
   /**
    * @param {string} fpath - the path to the file
    * @returns {object} - {filePath, content}
@@ -88,9 +88,91 @@ export class Contract {
   getSource(): string;
   _processAst(node: any): void;
 }
+
+export class Location {
+  constructor(line: number, column: number);
+  line: number;
+  column: number;
+}
+export class LocationInfo {
+  constructor(start: Location, end: Location);
+  start: Location;
+  end: Location;
+}
+
+export class Identifier {
+  constructor(type: any, name: any, loc: LocationInfo);
+  type: any;
+  name: any;
+  loc: LocationInfo;
+}
+export class InitialValue {
+  constructor(
+    loc: LocationInfo,
+    number: number,
+    subdenomination: any,
+    type: any
+  );
+  loc: LocationInfo;
+  number: number;
+  subdenomination: any;
+  type:
+    | 'NumberLiteral'
+    | 'BooleanLiteral'
+    | 'StringLiteral'
+    | 'Identifier'
+    | 'BinaryOperation';
+  left?: Identifier;
+  right?: Identifier;
+  operator?: string; // +, -, *, /, %
+}
+export class VariableDeclarationStatementVariable {
+  constructor(
+    expression: any,
+    identifier: Identifier,
+    type: any,
+    isIndexed: boolean,
+    isStateVar: boolean,
+    loc: LocationInfo,
+    storageLocation: any,
+    name: string
+  );
+  expression: any;
+  identifier: Identifier;
+  type: any;
+  isIndexed: boolean;
+  isStateVar: boolean;
+  loc: LocationInfo;
+  storageLocation: any;
+  name: string;
+}
+export class ReturnStatement {
+  constructor(expression: any, loc: LocationInfo);
+  expression: any;
+  loc: LocationInfo;
+  type: 'ReturnStatement';
+}
+export class VariableDeclarationStatement {
+  constructor(
+    initialValue: InitialValue,
+    loc: LocationInfo,
+    type: any,
+    variables: VariableDeclarationStatementVariable[]
+  );
+  initialValue: InitialValue;
+  loc: LocationInfo;
+  type: 'VariableDeclarationStatement';
+  variables: VariableDeclarationStatementVariable[];
+}
+export class FunctionBody {
+  constructor(contract: any, node: any);
+  loc: LocationInfo;
+  statements: (ReturnStatement | VariableDeclarationStatement)[];
+}
 export class FunctionDef {
   constructor(contract: any, node: any);
   contract: any;
+  body: any;
   ast: any;
   name: any;
   modifiers: any;
