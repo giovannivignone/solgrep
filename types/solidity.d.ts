@@ -5,6 +5,7 @@ import {
 import { Token } from "@solidity-parser/parser/dist/src/types";
 
 export class SourceUnit {
+    constructor();
   /**
    * @param {string} fpath - the path to the file
    * @returns {object} - {filePath, content}
