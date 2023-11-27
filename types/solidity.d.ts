@@ -77,7 +77,7 @@ export class Contract {
   /**
    * @returns {FunctionDef[]} - the functions of the contract
    * */
-  getFunctions(): FunctionDef[];
+  getFunctions(): FunctionDefinition[];
   /**
    * @returns - the AST of the contract
    * */
@@ -146,12 +146,7 @@ export class VariableDeclarationStatementVariable {
   storageLocation: any;
   name: string;
 }
-export class ReturnStatement {
-  constructor(expression: any, loc: LocationInfo);
-  expression: any;
-  loc: LocationInfo;
-  type: 'ReturnStatement';
-}
+
 export class VariableDeclarationStatement {
   constructor(
     initialValue: InitialValue,
@@ -164,21 +159,99 @@ export class VariableDeclarationStatement {
   type: 'VariableDeclarationStatement';
   variables: VariableDeclarationStatementVariable[];
 }
-export class FunctionBody {
-  constructor(contract: any, node: any);
-  loc: LocationInfo;
-  statements: (ReturnStatement | VariableDeclarationStatement)[];
+export class StatementBody {
+  type: 'Block';
 }
-export class FunctionDef {
-  constructor(contract: any, node: any);
-  contract: any;
-  body: any;
-  ast: any;
-  name: any;
-  modifiers: any;
-  /**
-   * @returns {string}
-   */
+
+export type TypeName =
+  | 'ElementaryTypeName'
+  | 'UserDefinedTypeName'
+  | 'Mapping'
+  | 'ArrayTypeName'
+  | 'FunctionTypeName';
+export type StateMutability = 'pure' | 'view' | 'payable' | 'nonpayable' | null;
+export type StorageLocation = 'memory' | 'storage' | 'calldata' | null;
+
+export class ElementaryTypeName {
+  constructor(
+    name: string,
+    loc: LocationInfo,
+    stateMutability: StateMutability
+  );
+  type: TypeName;
+  name: string;
+  stateMutability: StateMutability;
+  loc: LocationInfo;
+}
+
+export class VariableDeclaration {
+  constructor(
+    typeName: ElementaryTypeName,
+    name: string,
+    identifier: Identifier,
+    storageLocation: StorageLocation,
+    isStateVar: boolean,
+    isIndexed: boolean,
+    expression: any,
+    loc: LocationInfo
+  );
+  type: 'VariableDeclaration';
+  typeName: ElementaryTypeName;
+  name: string;
+  identifier: Identifier;
+  storageLocation: StorageLocation;
+  isStateVar: boolean;
+  isIndexed: boolean;
+  expression: any;
+  loc: LocationInfo;
+}
+
+export class Block {
+  constructor(statements: Statement[], loc: LocationInfo);
+  type: 'Block';
+  statements: Statement[];
+  loc: LocationInfo;
+}
+
+export type Statement =
+  | VariableDeclarationStatement
+  | ExpressionStatement
+  | ForStatement
+  | IfStatement
+  | EmitStatement
+  | ReturnStatement;
+
+export class FunctionDefinition {
+  constructor(
+    name: string,
+    parameters: VariableDeclaration[],
+    returnParameters: VariableDeclaration[],
+    body: Block,
+    visibility: string,
+    modifiers: any[],
+    override: any | null,
+    isConstructor: boolean,
+    isReceiveEther: boolean,
+    isFallback: boolean,
+    isVirtual: boolean,
+    stateMutability: StateMutability,
+    loc: LocationInfo
+  );
+  type: 'FunctionDefinition';
+  name: string;
+  parameters: VariableDeclaration[];
+  returnParameters: VariableDeclaration[];
+  body: Block;
+  visibility: string;
+  modifiers: any[];
+  override: any | null;
+  isConstructor: boolean;
+  isReceiveEther: boolean;
+  isFallback: boolean;
+  isVirtual: boolean;
+  stateMutability: StateMutability;
+  loc: LocationInfo;
+
   getName(): string;
   /**
    * @returns {string} - the source code of the function
@@ -201,4 +274,130 @@ export class FunctionDef {
       findOne: boolean;
     }
   ): ASTNode[];
+}
+
+export class ExpressionStatement {
+  constructor(expression: Expression, loc: LocationInfo);
+  type: 'ExpressionStatement';
+  expression: Expression;
+  loc: LocationInfo;
+}
+
+export class ForStatement {
+  constructor(
+    initExpression: VariableDeclarationStatement | null,
+    conditionExpression: Expression,
+    loopExpression: ExpressionStatement | null,
+    body: Block,
+    loc: LocationInfo
+  );
+  type: 'ForStatement';
+  initExpression: VariableDeclarationStatement | null;
+  conditionExpression: Expression;
+  loopExpression: ExpressionStatement | null;
+  body: Block;
+  loc: LocationInfo;
+}
+
+export class IfStatement {
+  constructor(
+    condition: Expression,
+    trueBody: Block,
+    falseBody: Block | null,
+    loc: LocationInfo
+  );
+  type: 'IfStatement';
+  condition: Expression;
+  trueBody: Block;
+  falseBody: Block | null;
+  loc: LocationInfo;
+}
+
+export class EmitStatement {
+  constructor(eventCall: FunctionCall, loc: LocationInfo);
+  type: 'EmitStatement';
+  eventCall: FunctionCall;
+  loc: LocationInfo;
+}
+
+export class ReturnStatement {
+  constructor(expression: Expression, loc: LocationInfo);
+  type: 'ReturnStatement';
+  expression: Expression;
+  loc: LocationInfo;
+}
+
+export class FunctionCall {
+  constructor(
+    expression: Identifier,
+    arguments: Expression[],
+    names: string[],
+    identifiers: Identifier[],
+    loc: LocationInfo
+  );
+  type: 'FunctionCall';
+  expression: Identifier;
+  arguments: Expression[];
+  names: string[];
+  identifiers: Identifier[];
+  loc: LocationInfo;
+}
+
+export type Expression =
+  | Identifier
+  | Literal
+  | BinaryOperation
+  | UnaryOperation
+  | FunctionCall;
+
+export class BinaryOperation {
+  constructor(
+    operator: string,
+    left: Expression,
+    right: Expression,
+    loc: LocationInfo
+  );
+  type: 'BinaryOperation';
+  operator: string;
+  left: Expression;
+  right: Expression;
+  loc: LocationInfo;
+}
+
+export class UnaryOperation {
+  constructor(
+    operator: string,
+    subExpression: Expression,
+    isPrefix: boolean,
+    loc: LocationInfo
+  );
+  type: 'UnaryOperation';
+  operator: string;
+  subExpression: Expression;
+  isPrefix: boolean;
+  loc: LocationInfo;
+}
+
+export type Literal = NumberLiteral | BooleanLiteral | StringLiteral;
+
+export class NumberLiteral {
+  constructor(number: string, subdenomination: any | null, loc: LocationInfo);
+  type: 'NumberLiteral';
+  number: string;
+  subdenomination: any | null;
+  loc: LocationInfo;
+}
+
+export class BooleanLiteral {
+  constructor(value: boolean, loc: LocationInfo);
+  type: 'BooleanLiteral';
+  value: boolean;
+  loc: LocationInfo;
+}
+
+export class StringLiteral {
+  constructor(value: string, loc: LocationInfo);
+  type: 'StringLiteral';
+  value: string;
+  loc: LocationInfo;
 }
