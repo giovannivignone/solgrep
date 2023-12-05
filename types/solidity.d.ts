@@ -58,7 +58,7 @@ export class SourceUnit {
 export class Contract {
   constructor(sourceUnit: any, node: any);
   sourceUnit: any;
-  ast: any;
+  ast: ASTNode;
   name: any;
   dependencies: any;
   stateVars: {};

@@ -1,3 +1,5 @@
+import { SourceUnit } from "@solidity-parser/parser/dist/src/ast-types";
+
 export class BaseRule {
     constructor(solgrep: any);
     solgrep: any;
