@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 /**
  * @author github.com/tintinweb
  * @license MIT
@@ -9,14 +9,13 @@ const fs = require('fs');
 const path = require('path');
 const parser = require('@solidity-parser/parser');
 
-
 class FindOneExit extends Error {}
 
 const prxAttribForwarder = {
-    get: function (target, prop, receiver) {
-        return target[prop] === undefined ? target.ast[prop] : target[prop];
-    }
-}
+  get: function (target, prop, receiver) {
+    return target[prop] === undefined ? target.ast[prop] : target[prop];
+  },
+};
 
 class SourceUnit {
   constructor() {
@@ -52,7 +51,7 @@ class SourceUnit {
       throw Error(`File '${fpath}' does not exist.`);
     }
     const filePath = path.resolve(fpath);
-    const content = fs.readFileSync(filePath, "utf-8");
+    const content = fs.readFileSync(filePath, 'utf-8');
     return { filePath, content };
   }
 
@@ -97,8 +96,8 @@ class SourceUnit {
   parseAst(input) {
     this.ast = parser.parse(input, { loc: true, tolerant: true });
 
-    if (typeof this.ast === "undefined") {
-      throw new parser.ParserError("Parser failed to parse file.");
+    if (typeof this.ast === 'undefined') {
+      throw new parser.ParserError('Parser failed to parse file.');
     }
 
     /** AST rdy */
@@ -151,7 +150,7 @@ class Contract {
 
     this._processAst(node);
   }
-  
+
   /**
    * @returns {FunctionDef[]} - the functions of the contract
    * */
@@ -171,9 +170,9 @@ class Contract {
    * */
   getSource() {
     return this.sourceUnit.content
-      .split("\n")
+      .split('\n')
       .slice(this.ast.loc.start.line - 1, this.ast.loc.end.line)
-      .join("\n");
+      .join('\n');
   }
 
   _processAst(node) {
@@ -210,7 +209,7 @@ class Contract {
         current_contract.names[_node.name] = _node;
       }, // wrong def in code: https://github.com/solidityj/solidity-antlr4/blob/fbe865f8ba510cbdb1540fcf9517a42820a4d097/Solidity.g4#L78 for consttuctzor () ..
       ModifierDefinition(_node) {
-        current_function = new FunctionDef(current_contract, _node, "modifier");
+        current_function = new FunctionDef(current_contract, _node, 'modifier');
         current_contract.modifiers[_node.name] = current_function;
         current_contract.names[_node.name] = current_function;
       },
@@ -256,13 +255,13 @@ class FunctionDef {
 
     if (this.ast.isConstructor) {
       contract.constructor = this;
-      this.name = "__constructor__";
+      this.name = '__constructor__';
     } else if (this.ast.isFallback) {
       contract.fallback = this;
-      this.name = "__fallback__";
+      this.name = '__fallback__';
     } else if (this.ast.isReceiveEther) {
       contract.receiveEther = this;
-      this.name = "__receiveEther__";
+      this.name = '__receiveEther__';
     } else {
       this.name = node.name;
     }
@@ -289,13 +288,22 @@ class FunctionDef {
   }
 
   /**
+   * Retrieves the modifiers applied to the function definition.
+   * @returns {object} An object containing all the modifiers of the function,
+   * where each key is the name of a modifier and the corresponding value is the modifier's node.
+   */
+  getModifiers() {
+    return this.modifiers;
+  }
+
+  /**
    * @returns {string} - the source code of the function
    * */
   getSource() {
     return this.contract.sourceUnit.content
-      .split("\n")
+      .split('\n')
       .slice(this.ast.loc.start.line - 1, this.ast.loc.end.line)
-      .join("\n");
+      .join('\n');
   }
 
   /**
@@ -319,17 +327,17 @@ class FunctionDef {
       parser.visit(this.ast, {
         FunctionCall(node) {
           switch (node.expression.type) {
-            case "MemberAccess":
+            case 'MemberAccess':
               if (node.expression.memberName === funcName) {
                 found.push(node);
               }
               break;
-            case "Identifier":
+            case 'Identifier':
               if (node.expression.name === funcName) {
                 found.push(node);
               }
               break;
-            case "TypeNameExpression":
+            case 'TypeNameExpression':
               if (node.expression.typeName === funcName) {
                 found.push(node);
               }
@@ -351,7 +359,7 @@ class FunctionDef {
 }
 
 module.exports = {
-    SourceUnit,
-    Contract,
-    FunctionDef,
-}
+  SourceUnit,
+  Contract,
+  FunctionDef,
+};
