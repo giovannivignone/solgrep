@@ -281,6 +281,13 @@ export class FunctionDef {
    * @returns {FunctionDef[]} - array of function calls
    * */
   getInnerFunctionCalls(depth?: number): FunctionDef[];
+
+  /**
+   * Retrieves the modifiers applied to the function definition.
+   * @returns {object} An object containing all the modifiers of the function,
+   * where each key is the name of a modifier and the corresponding value is the modifier's node.
+   */
+  getModifiers(): { [name: string]: ASTNode };
 }
 
 export class ExpressionStatement {
