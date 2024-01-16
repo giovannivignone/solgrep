@@ -75,9 +75,9 @@ export class Contract {
   usingFor: {};
   functionCalls: any[];
   /**
-   * @returns {FunctionDefinition[]} - the functions of the contract
+   * @returns {FunctionDef[]} - the functions of the contract
    * */
-  getFunctions(): FunctionDefinition[];
+  getFunctions(): FunctionDef[];
   /**
    * @returns - the AST of the contract
    * */
@@ -221,7 +221,7 @@ export type Statement =
   | EmitStatement
   | ReturnStatement;
 
-export class FunctionDefinition {
+export class FunctionDef {
   constructor(
     name: string,
     parameters: VariableDeclaration[],
@@ -237,7 +237,7 @@ export class FunctionDefinition {
     stateMutability: StateMutability,
     loc: LocationInfo
   );
-  type: 'FunctionDefinition';
+  type: 'FunctionDef';
   name: string;
   parameters: VariableDeclaration[];
   returnParameters: VariableDeclaration[];
@@ -274,6 +274,13 @@ export class FunctionDefinition {
       findOne: boolean;
     }
   ): ASTNode[];
+
+  /**
+   * @description get all function calls that are made inside this function
+   * @param {number} [depth=1] - the depth of function calls to recursively search for
+   * @returns {FunctionDef[]} - array of function calls
+   * */
+  getInnerFunctionCalls(depth?: number): FunctionDef[];
 }
 
 export class ExpressionStatement {

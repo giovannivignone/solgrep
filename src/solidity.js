@@ -356,6 +356,35 @@ class FunctionDef {
 
     return found;
   }
+
+  /**
+   * @description get all function calls that are made inside this function
+   * @param {number} [depth=1] - the depth of function calls to recursively search for
+   * @returns {FunctionDef[]} - array of function calls
+   * */
+  getInnerFunctionCalls(depth = 1) {
+    let innerFunctionCalls = [];
+    let functions = this.contract.getFunctions();
+  
+    const findInnerCalls = (func, currentDepth) => {
+      if (currentDepth > depth) {
+        return;
+      }
+  
+      for (let innerFunc of functions) {
+        if (innerFunc.name === func.name) {
+          continue;
+        }
+        if (func.getFunctionCalls(innerFunc.name).length > 0) {
+          innerFunctionCalls.push(innerFunc);
+          findInnerCalls(innerFunc, currentDepth + 1);
+        }
+      }
+    };
+  
+    findInnerCalls(this, 1);
+    return innerFunctionCalls;
+  }
 }
 
 module.exports = {

@@ -11,9 +11,9 @@ let contract = sourceUnit.getContracts().find(contract => contract.name === 'bab
 // Testing subcall logic
 let functions = contract.getFunctions();
 for (let func of functions) {
-  for (let otherFunc of functions) {
-    if (func.getFunctionCalls(otherFunc.name).length > 0) {
-      console.log(`Calls to: ${otherFunc.getName()}`);
-    }
+  const innerFunctions = func.getInnerFunctionCalls();
+  console.log(`${func.name} has ${innerFunctions.length} inner function calls:`);
+  for (let innerFunc of innerFunctions) {
+    console.log(`\t${innerFunc.name}`);
   }
 }
