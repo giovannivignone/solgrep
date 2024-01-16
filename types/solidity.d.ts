@@ -75,7 +75,7 @@ export class Contract {
   usingFor: {};
   functionCalls: any[];
   /**
-   * @returns {FunctionDef[]} - the functions of the contract
+   * @returns {FunctionDefinition[]} - the functions of the contract
    * */
   getFunctions(): FunctionDefinition[];
   /**
