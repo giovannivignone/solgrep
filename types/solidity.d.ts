@@ -54,6 +54,12 @@ export class SourceUnit {
    * @returns {SourceUnit} - the source unit
    */
   parseAst(input: string): SourceUnit;
+
+  /**
+   * @param {object} func - the function node from the ast to fetch the source code for
+   * @returns {string} - the raw function string
+   * */
+  getRawFunctionString(func: object): string;
 }
 export class Contract {
   constructor(sourceUnit: any, node: any);
@@ -278,9 +284,10 @@ export class FunctionDef {
   /**
    * @description get all function calls that are made inside this function
    * @param {number} [depth=1] - the depth of function calls to recursively search for
-   * @returns {FunctionDef[]} - array of function calls
+   * @param {boolean} [includeImports=false] - include function calls to imported functions
+   * @returns {object[]} - array of function call nodes
    * */
-  getInnerFunctionCalls(depth?: number): FunctionDef[];
+  getInnerFunctionCalls(depth?: number, includeImports?: boolean): object[];
 
   /**
    * Retrieves the modifiers applied to the function definition.
@@ -288,6 +295,13 @@ export class FunctionDef {
    * where each key is the name of a modifier and the corresponding value is the modifier's node.
    */
   getModifiers(): { [name: string]: ASTNode };
+
+  /**
+   * @description get all function calls that are made inside this function (including
+   * calls to imported functions but not including calls to solidity macros - see ../src/utils/macros.js)
+   * @returns {object[]} - array of function call nodes
+   * */
+  getAllFunctionCalls(): object[];
 }
 
 export class ExpressionStatement {
