@@ -60,5 +60,14 @@ contract baby_bank {
     ) public payable {
         deposit(_t, _tg, _n);
         withdraw();
+        confirmBalance(0);
+    }
+
+    function get_balance() public view returns (uint256) {
+        return address(this).balance;
+    }
+
+    function confirmBalance(uint256 _b) public view returns (bool) {
+        return _b == get_balance();
     }
 }
