@@ -8,6 +8,7 @@
 const fs = require('fs');
 const path = require('path');
 const parser = require('@solidity-parser/parser');
+const { memberAccesses, identifiers } = require('./utils/macros');
 
 class FindOneExit extends Error {}
 
@@ -120,6 +121,54 @@ class SourceUnit {
     });
     /*** also import dependencies? */
     return this;
+  }
+
+   /**
+   * @param {object} func - the function node from the ast to fetch the source code for
+   * @returns {string} - the raw function string
+   * */
+   getRawFunctionString(func) {
+    if (func.ast && func.ast.loc) {
+      const startLine = func.ast.loc.start.line;
+      const endLine = func.ast.loc.end.line;
+      const sourceLines = this.content.split('\n');
+      const functionLines = sourceLines.slice(startLine - 1, endLine);
+      return functionLines.join('\n');
+    }
+    let funcName;
+    switch (func.expression.type) {
+      case 'MemberAccess':
+        funcName = func.expression.memberName;
+        break;
+      case 'Identifier':
+        funcName = func.expression.name;
+        break;
+      case 'TypeNameExpression':
+        funcName = func.expression.typeName;
+        break;
+      default:
+        throw new Error(`Unsupported function call type: ${func.expression.type}`);
+    }
+    
+
+    // The function is not defined in the current SourceUnit, so look it up in the imports
+    for (let importNode of this.imports) {
+      let importPath = path.join(path.dirname(this.filePath), importNode.path);
+      let importedSourceUnit = new SourceUnit().fromFile(importPath);
+      for (let contract of importedSourceUnit.getContracts()) {
+        for (let func of contract.getFunctions()) {
+          if (func.getName() === funcName) {
+            const startLine = func.ast.loc.start.line;
+            const endLine = func.ast.loc.end.line;
+            const sourceLines = importedSourceUnit.content.split('\n');
+            const functionLines = sourceLines.slice(startLine - 1, endLine);
+            return functionLines.join('\n');
+          }
+        }
+      }
+    }
+    
+    throw new Error(`Function ${funcName} is not defined in this SourceUnit or its imports.`);
   }
 }
 
@@ -358,13 +407,45 @@ class FunctionDef {
   }
 
   /**
+   * @description get all function calls that are made inside this function (including
+   * calls to imported functions but not including calls to solidity macros - see ../src/utils/macros.js)
+   * @returns {object[]} - array of function call nodes
+   * */
+  getAllFunctionCalls() {
+    let found = [];
+    parser.visit(this.ast, {
+      FunctionCall(node) {
+        switch (node.expression.type) {
+          case 'MemberAccess':
+            if (!memberAccesses.map((ma) => ma.name).includes(node.expression.memberName)) {
+              found.push(node);
+            }
+            break;
+          case 'Identifier':
+            if (!identifiers.map((id) => id.name).includes(node.expression.name)) {
+              found.push(node);
+            }
+            break;
+          case 'TypeNameExpression':
+            if (node.expression.typeName) {
+              found.push(node);
+            }
+        }
+      },
+    });
+
+    return found;
+  }
+
+  /**
    * @description get all function calls that are made inside this function
    * @param {number} [depth=1] - the depth of function calls to recursively search for
-   * @returns {FunctionDef[]} - array of function calls
+   * @param {boolean} [includeImports=false] - include function calls to imported functions
+   * @returns {object[]} - array of function call nodes
    * */
-  getInnerFunctionCalls(depth = 1) {
+  getInnerFunctionCalls(depth = 1, includeImports = false) {
     let innerFunctionCalls = [];
-    let functions = this.contract.getFunctions();
+    let functions = includeImports ? this.getAllFunctionCalls() : this.contract.getFunctions();
   
     const findInnerCalls = (func, currentDepth) => {
       if (currentDepth > depth) {
@@ -373,6 +454,11 @@ class FunctionDef {
   
       for (let innerFunc of functions) {
         if (innerFunc.name === func.name) {
+          continue;
+        }
+        if (includeImports) { // if we include imports we know we fetched functions as inner function calls only
+          innerFunctionCalls.push(innerFunc);
+          findInnerCalls(innerFunc, currentDepth + 1);
           continue;
         }
         if (func.getFunctionCalls(innerFunc.name).length > 0) {
