@@ -1,5 +1,3 @@
-const solidityFunctionMacros = identifiers + memberAccesses
-
 const identifiers = [
     {name: 'blockhash', nodeType: 'Identifier'},
     {name: 'gasleft', nodeType: 'Identifier'},
@@ -77,6 +75,8 @@ const memberAccesses = [
     {name: 'min', nodeType: 'MemberAccess'},
     {name: 'max', nodeType: 'MemberAccess'},
 ]
+
+const solidityFunctionMacros = identifiers + memberAccesses
 
 module.exports = {
     solidityFunctionMacros,
