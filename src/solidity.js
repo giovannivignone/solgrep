@@ -428,7 +428,7 @@ class FunctionDef {
    * @description get all function calls that are made inside this function
    * @param {number} [depth=1] - the depth of function calls to recursively search for
    * @param {boolean} [includeImports=false] - include function calls to imported functions
-   * @param {string[]} [omittableImportPaths=[]] - array of paths to omit
+   * @param {string[]} [omittableImportPaths=typicalLibraryNames] - array of paths to omit
    * @returns {object[]} - array of function call nodes
    * */
   getInnerFunctionCalls(depth = 1, includeImports = false, omittableImportPaths = typicalLibraryNames) {
