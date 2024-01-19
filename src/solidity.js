@@ -126,7 +126,7 @@ class SourceUnit {
   }
 
    /**
-   * @param {object} func - the function node from the ast to fetch the source code for
+   * @param {FunctionCall} func - the function node from the ast to fetch the source code for
    * @returns {string} - the raw function string
    * */
    getRawFunctionString(func) {

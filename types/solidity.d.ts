@@ -56,10 +56,10 @@ export class SourceUnit {
   parseAst(input: string): SourceUnit;
 
   /**
-   * @param {object} func - the function node from the ast to fetch the source code for
+   * @param {FunctionCall} func - the function node from the ast to fetch the source code for
    * @returns {string} - the raw function string
    * */
-  getRawFunctionString(func: object): string;
+  getRawFunctionString(func: FunctionCall): string;
 }
 export class Contract {
   constructor(sourceUnit: any, node: any);
