@@ -286,9 +286,9 @@ export class FunctionDef {
    * @param {number} [depth=1] - the depth of function calls to recursively search for
    * @param {boolean} [includeImports=false] - include function calls to imported functions
    * @param {string[]} [omittableImportPaths=typicalLibraryNames] - array of paths to omit
-   * @returns {object[]} - array of function call nodes
+   * @returns {FunctionCall[]} - array of function call nodes
    * */
-  getInnerFunctionCalls(depth?: number, includeImports?: boolean, omittableImportPaths?: string[]): object[];
+  getInnerFunctionCalls(depth?: number, includeImports?: boolean, omittableImportPaths?: string[]): FunctionCall[];
 
   /**
    * Retrieves the modifiers applied to the function definition.
