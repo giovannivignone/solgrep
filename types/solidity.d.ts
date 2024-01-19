@@ -63,7 +63,7 @@ export class SourceUnit {
 }
 export class Contract {
   constructor(sourceUnit: any, node: any);
-  sourceUnit: any;
+  sourceUnit: SourceUnit;
   ast: ASTNode;
   name: any;
   dependencies: any;
