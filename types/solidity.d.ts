@@ -285,6 +285,7 @@ export class FunctionDef {
    * @description get all function calls that are made inside this function
    * @param {number} [depth=1] - the depth of function calls to recursively search for
    * @param {boolean} [includeImports=false] - include function calls to imported functions
+   * @param {string[]} [omittableImportPaths=[]] - array of paths to omit
    * @returns {object[]} - array of function call nodes
    * */
   getInnerFunctionCalls(depth?: number, includeImports?: boolean): object[];
@@ -302,6 +303,15 @@ export class FunctionDef {
    * @returns {object[]} - array of function call nodes
    * */
   getAllFunctionCalls(): object[];
+
+  /**
+   * @description filters out nodes in found that are defined in an omittable path
+   * @param {object[]} found - array of function call nodes
+   * @param {string[]} omittablePaths - array of paths to omit
+   * @returns {object[]} - array of function call nodes
+   * @private
+   * */
+  private filterFoundForOmittablePaths(found, omittablePaths)
 }
 
 export class ExpressionStatement {
