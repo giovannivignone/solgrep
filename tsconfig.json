@@ -4,7 +4,8 @@
     "checkJs": false,
     "declaration": true,
     "emitDeclarationOnly": true,
-    "outDir": "./types"
+    "outDir": "./types",
+    "allowImportingTsExtensions": true,
   },
-  "include": ["src/**/*.js"]
+  "include": ["src/**/*.js", "src/**/*.ts", "types/**/*.ts"]
 }
