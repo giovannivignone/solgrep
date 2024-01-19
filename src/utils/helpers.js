@@ -1,4 +1,4 @@
-export const getFunctionNameFromNode = (node) => {
+const getFunctionNameFromNode = (node) => {
     switch (node.expression.type) {
       case 'MemberAccess':
         return node.expression.memberName;
@@ -10,3 +10,7 @@ export const getFunctionNameFromNode = (node) => {
         throw new Error(`Unsupported function call type: ${node.expression.type}`);
     }
   }
+
+module.exports = {
+    getFunctionNameFromNode
+}

@@ -1,6 +1,6 @@
-export const solidityFunctionMacros = identifiers + memberAccesses
+const solidityFunctionMacros = identifiers + memberAccesses
 
-export const identifiers = [
+const identifiers = [
     {name: 'blockhash', nodeType: 'Identifier'},
     {name: 'gasleft', nodeType: 'Identifier'},
 
@@ -27,7 +27,7 @@ export const identifiers = [
     {name: 'selfdestruct', nodeType: 'Identifier'},
 ]
 
-export const memberAccesses = [
+const memberAccesses = [
     // block methods
     { name: 'basefee', nodeType: 'MemberAccess'},
     { name: 'chainid', nodeType: 'MemberAccess'},
@@ -77,3 +77,9 @@ export const memberAccesses = [
     {name: 'min', nodeType: 'MemberAccess'},
     {name: 'max', nodeType: 'MemberAccess'},
 ]
+
+module.exports = {
+    solidityFunctionMacros,
+    identifiers,
+    memberAccesses
+}
