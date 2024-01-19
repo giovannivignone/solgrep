@@ -9,6 +9,8 @@ const fs = require('fs');
 const path = require('path');
 const parser = require('@solidity-parser/parser');
 const { memberAccesses, identifiers } = require('./utils/macros');
+const { typicalLibraryNames } = require('./utils/typical-library-names');
+const { getFunctionNameFromNode } = require('./utils/helpers');
 
 class FindOneExit extends Error {}
 
@@ -135,21 +137,7 @@ class SourceUnit {
       const functionLines = sourceLines.slice(startLine - 1, endLine);
       return functionLines.join('\n');
     }
-    let funcName;
-    switch (func.expression.type) {
-      case 'MemberAccess':
-        funcName = func.expression.memberName;
-        break;
-      case 'Identifier':
-        funcName = func.expression.name;
-        break;
-      case 'TypeNameExpression':
-        funcName = func.expression.typeName;
-        break;
-      default:
-        throw new Error(`Unsupported function call type: ${func.expression.type}`);
-    }
-    
+    let funcName = getFunctionNameFromNode(func);
 
     // The function is not defined in the current SourceUnit, so look it up in the imports
     for (let importNode of this.imports) {
@@ -411,41 +399,41 @@ class FunctionDef {
    * calls to imported functions but not including calls to solidity macros - see ../src/utils/macros.js)
    * @returns {object[]} - array of function call nodes
    * */
-  getAllFunctionCalls() {
+  getAllFunctionCalls(omittablePaths = []) {
     let found = [];
     parser.visit(this.ast, {
       FunctionCall(node) {
-        switch (node.expression.type) {
+        switch (node.expression?.type) {
           case 'MemberAccess':
-            if (!memberAccesses.map((ma) => ma.name).includes(node.expression.memberName)) {
+            if (!memberAccesses.map((ma) => ma.name).includes(node.expression?.memberName)) {
               found.push(node);
             }
             break;
           case 'Identifier':
-            if (!identifiers.map((id) => id.name).includes(node.expression.name)) {
+            if (!identifiers.map((id) => id.name).includes(node.expression?.name)) {
               found.push(node);
             }
             break;
           case 'TypeNameExpression':
-            if (node.expression.typeName) {
+            if (node.expression?.typeName) {
               found.push(node);
             }
         }
       },
     });
-
-    return found;
+    return this.filterFoundForOmittablePaths(found, omittablePaths);
   }
 
   /**
    * @description get all function calls that are made inside this function
    * @param {number} [depth=1] - the depth of function calls to recursively search for
    * @param {boolean} [includeImports=false] - include function calls to imported functions
+   * @param {string[]} [omittableImportPaths=[]] - array of paths to omit
    * @returns {object[]} - array of function call nodes
    * */
-  getInnerFunctionCalls(depth = 1, includeImports = false) {
+  getInnerFunctionCalls(depth = 1, includeImports = false, omittableImportPaths = typicalLibraryNames) {
     let innerFunctionCalls = [];
-    let functions = includeImports ? this.getAllFunctionCalls() : this.contract.getFunctions();
+    let functions = includeImports ? this.getAllFunctionCalls(omittableImportPaths) : this.contract.getFunctions();
   
     const findInnerCalls = (func, currentDepth) => {
       if (currentDepth > depth) {
@@ -470,6 +458,48 @@ class FunctionDef {
   
     findInnerCalls(this, 1);
     return innerFunctionCalls;
+  }
+
+  /**
+   * @description filters out nodes in found that are defined in an omittable path
+   * @param {object[]} found - array of function call nodes
+   * @param {string[]} omittablePaths - array of paths to omit
+   * @returns {object[]} - array of function call nodes
+   * @private
+   * */
+  filterFoundForOmittablePaths(found, omittablePaths) {
+    if (omittablePaths.length === 0) {
+      return found;
+    }
+    return found.filter((node) => {
+      const funcName = getFunctionNameFromNode(node);
+  
+      // Check if the function is defined in the current SourceUnit
+      for (let func of this.contract.sourceUnit.getContracts().flatMap(contract => contract.getFunctions())) {
+        if (func.getName() === funcName) {
+          return true;  // Keep the node if the function is defined in the current SourceUnit
+        }
+      }
+  
+      // Check if the function is defined in the imports
+      for (let importNode of this.contract.sourceUnit.imports) {
+        let importPath = path.join(path.dirname(this.contract.sourceUnit.filePath), importNode.path).toLowerCase();
+        // Check if any of the omittable paths is inside the import path
+        if (omittablePaths.some(omittablePath => importPath.includes(omittablePath.toLowerCase()))) {
+          return false;  
+        }
+        let importedSourceUnit = new SourceUnit().fromFile(importPath);
+        for (let contract of importedSourceUnit.getContracts()) {
+          for (let func of contract.getFunctions()) {
+            if (func.getName() === funcName) {
+              return true;  // Keep the node if the function is defined in the imports and its path is not in omittablePaths
+            }
+          }
+        }
+      }
+  
+      return false;  // Exclude the node if the function is not defined in this SourceUnit or its imports
+    });
   }
 }
 
