@@ -355,7 +355,7 @@ class FunctionDef {
    * @param {string} funcName - the name of the function this function may call to
    * @param {object} opts - options
    * @param {boolean} opts.findOne - return after first match
-   * @returns {object[]} - array of function calls
+   * @returns {FunctionCall[]} - array of function calls
    * */
   getFunctionCalls(funcName, opts) {
     let found = [];
@@ -397,7 +397,8 @@ class FunctionDef {
   /**
    * @description get all function calls that are made inside this function (including
    * calls to imported functions but not including calls to solidity macros - see ../src/utils/macros.js)
-   * @returns {object[]} - array of function call nodes
+   * @param {string[]} [omittablePaths=[]] - array of paths to omit
+   * @returns {FunctionCall[]} - array of function call nodes
    * */
   getAllFunctionCalls(omittablePaths = []) {
     let found = [];
@@ -421,7 +422,7 @@ class FunctionDef {
         }
       },
     });
-    return this.filterFoundForOmittablePaths(found, omittablePaths);
+    return this.filterNodesForOmittablePaths(found, omittablePaths);
   }
 
   /**
@@ -429,7 +430,7 @@ class FunctionDef {
    * @param {number} [depth=1] - the depth of function calls to recursively search for
    * @param {boolean} [includeImports=false] - include function calls to imported functions
    * @param {string[]} [omittableImportPaths=typicalLibraryNames] - array of paths to omit
-   * @returns {object[]} - array of function call nodes
+   * @returns {FunctionCall[]} - array of function call nodes
    * */
   getInnerFunctionCalls(depth = 1, includeImports = false, omittableImportPaths = typicalLibraryNames) {
     let innerFunctionCalls = [];
@@ -462,16 +463,16 @@ class FunctionDef {
 
   /**
    * @description filters out nodes in found that are defined in an omittable path
-   * @param {object[]} found - array of function call nodes
+   * @param {FunctionCall[]} nodes - array of function call nodes
    * @param {string[]} omittablePaths - array of paths to omit
-   * @returns {object[]} - array of function call nodes
+   * @returns {FunctionCall[]} - array of function call nodes
    * @private
    * */
-  filterFoundForOmittablePaths(found, omittablePaths) {
+  filterNodesForOmittablePaths(nodes, omittablePaths) {
     if (omittablePaths.length === 0) {
-      return found;
+      return nodes;
     }
-    return found.filter((node) => {
+    return nodes.filter((node) => {
       const funcName = getFunctionNameFromNode(node);
   
       // Check if the function is defined in the current SourceUnit

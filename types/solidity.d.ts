@@ -272,14 +272,14 @@ export class FunctionDef {
    * @param {string} funcName - the name of the function this function may call to
    * @param {object} opts - options
    * @param {boolean} opts.findOne - return after first match
-   * @returns {object[]} - array of function calls
+   * @returns {FunctionCall[]} - array of function calls
    * */
   getFunctionCalls(
     funcName: string,
     opts: {
       findOne: boolean;
     }
-  ): ASTNode[];
+  ): FunctionCall[];
 
   /**
    * @description get all function calls that are made inside this function
@@ -300,18 +300,19 @@ export class FunctionDef {
   /**
    * @description get all function calls that are made inside this function (including
    * calls to imported functions but not including calls to solidity macros - see ../src/utils/macros.js)
-   * @returns {object[]} - array of function call nodes
+   * @param {string[]} [omittablePaths=[]] - array of paths to omit
+   * @returns {FunctionCall[]} - array of function call nodes
    * */
-  getAllFunctionCalls(): object[];
+  getAllFunctionCalls(omittablePaths: string[]): FunctionCall[];
 
   /**
    * @description filters out nodes in found that are defined in an omittable path
-   * @param {object[]} found - array of function call nodes
+   * @param {FunctionCall[]} nodes - array of function call nodes
    * @param {string[]} omittablePaths - array of paths to omit
-   * @returns {object[]} - array of function call nodes
+   * @returns {FunctionCall[]} - array of function call nodes
    * @private
    * */
-  private filterFoundForOmittablePaths(found, omittablePaths)
+  private filterNodesForOmittablePaths(nodes:FunctionCall[], omittablePaths: string[]): FunctionCall[];
 }
 
 export class ExpressionStatement {
