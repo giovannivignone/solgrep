@@ -54,12 +54,6 @@ export class SourceUnit {
    * @returns {SourceUnit} - the source unit
    */
   parseAst(input: string): SourceUnit;
-
-  /**
-   * @param {FunctionCall} func - the function node from the ast to fetch the source code for
-   * @returns {string} - the raw function string
-   * */
-  getRawFunctionString(func: FunctionCall): string;
 }
 export class Contract {
   constructor(sourceUnit: any, node: any);
@@ -286,9 +280,11 @@ export class FunctionDef {
    * @param {number} [depth=1] - the depth of function calls to recursively search for
    * @param {boolean} [includeImports=false] - include function calls to imported functions
    * @param {string[]} [omittableImportPaths=typicalLibraryNames] - array of paths to omit
+   * @param {{[relativePathName: string]: string}} [repoMapping=null] - mapping of relativePaths to their content within 
+   * the repo that this contract is defined paths, e.g. { './UniswapV3Pool.sol': 'pragma solidity ...' }
    * @returns {FunctionCall[]} - array of function call nodes
    * */
-  getInnerFunctionCalls(depth?: number, includeImports?: boolean, omittableImportPaths?: string[]): FunctionCall[];
+  getInnerFunctionCalls(depth?: number, includeImports?: boolean, omittableImportPaths?: string[], repoMapping?: { [relativePathName: string]: string }): FunctionCall[];
 
   /**
    * Retrieves the modifiers applied to the function definition.
@@ -301,9 +297,18 @@ export class FunctionDef {
    * @description get all function calls that are made inside this function (including
    * calls to imported functions but not including calls to solidity macros - see ../src/utils/macros.js)
    * @param {string[]} [omittablePaths=[]] - array of paths to omit
+   * @param {{[relativePathName: string]: string}} [repoMapping=null] - mapping of relativePaths to their content within 
+   * the repo that this contract is defined paths, e.g. { './UniswapV3Pool.sol': 'pragma solidity ...' }
    * @returns {FunctionCall[]} - array of function call nodes
    * */
-  getAllFunctionCalls(omittablePaths: string[]): FunctionCall[];
+  getAllFunctionCalls(omittablePaths: string[], repoMapping?: {[relativePathName: string]: string}): FunctionCall[];
+
+  /**
+   * @param {FunctionCall} func - the function node from the ast to fetch the source code for
+   * @param {{[relativePathName: string]: string}} [repoMapping=null] - mapping of relativePaths to their content within
+   * @returns {string} - the raw function string
+   * */
+  getRawFunctionString(func: FunctionCall, repoMapping?: { [relativePathName: string]: string }): string;
 
   /**
    * @description filters out nodes in found that are defined in an omittable path
@@ -313,6 +318,21 @@ export class FunctionDef {
    * @private
    * */
   private filterNodesForOmittablePaths(nodes:FunctionCall[], omittablePaths: string[]): FunctionCall[];
+
+  /**
+   * @description find a function in the imported source units
+   * @param {string} funcName - the name of the function to find
+   * @param {{[relativePathName: string]: string}} [repoMapping] - mapping of relativePaths to their content within 
+   * the repo that this contract is defined paths, e.g. { './UniswapV3Pool.sol': 'pragma solidity ...' }
+   * @param {string[]} [omittablePaths=[]] - array of paths to omit
+   * @returns {[FunctionDef, SourceUnit] | null} - the found function and sourceUnit or null if not found
+   * @private
+   * */
+  private findFunctionInImports(funcName: string, repoMapping: {[relativePathName: string]: string}, omittablePaths?: string[]): [FunctionDef, SourceUnit] | null;
+
+  private getSourceUnitFromImport(importNode, repoMapping): SourceUnit;
+  
+  private getAbsolutePath(relativePath, currentContractName, repoMapping): string;
 }
 
 export class ExpressionStatement {

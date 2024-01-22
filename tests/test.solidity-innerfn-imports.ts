@@ -19,5 +19,5 @@ if (!withdrawfn) {
 const innerFunctions = withdrawfn.getInnerFunctionCalls(5, true);
 console.log(`${withdrawfn.name} has ${innerFunctions.length} inner function calls:`);
 for (let innerFunc of innerFunctions) {
-  console.log(sourceUnit.getRawFunctionString(innerFunc))
+  console.log(withdrawfn.getRawFunctionString(innerFunc))
 }

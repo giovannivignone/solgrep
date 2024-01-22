@@ -21,7 +21,7 @@ for (let func of functions) {
   for (let innerFunc of innerFunctions) {
     console.log(`\t${innerFunc.name}\n`);
     // print the code of the inner function
-    console.log(sourceUnit.getRawFunctionString(innerFunc))
+    console.log(func.getRawFunctionString(innerFunc))
   }
 }
 
