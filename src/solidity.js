@@ -446,7 +446,16 @@ class FunctionDef {
       return functionLines.join('\n');
     }
     let funcName = getFunctionNameFromNode(func);
-    const [foundFunc, importSourceUnit] = this.findFunctionInImports(funcName, repoMapping, []) ?? [null, null];
+    for (let func of this.contract.getFunctions()) {
+      if (func.getName() === funcName) {
+        const startLine = func.ast.loc.start.line;
+        const endLine = func.ast.loc.end.line;
+        const sourceLines = this.contract.sourceUnit.content.split('\n');
+        const functionLines = sourceLines.slice(startLine - 1, endLine);
+        return functionLines.join('\n');
+      }
+    }
+    const [foundFunc, importSourceUnit] = this.findFunctionInImports(funcName, repoMapping) ?? [null, null];
   
     if (foundFunc) {
       const startLine = foundFunc.ast.loc.start.line;
