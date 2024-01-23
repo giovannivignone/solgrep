@@ -598,20 +598,24 @@ class FunctionDef {
   }
 
   getAbsolutePath(relativePath, currentContractName, repoMapping) {
-    const currentAbsolutePath = Object.keys(repoMapping).find((absPath) => {
-      const contractFile = absPath.split('/').pop()
-      return contractFile === currentContractName + '.sol';
-    });
-    if (!currentAbsolutePath) {
+    const absolutePath = path.resolve(relativePath);
+
+    let closestAbsolutePath = null;
+    let closestDistance = Infinity;
+
+    for (const [absPath] of Object.entries(repoMapping)) {
+      const distance = path.relative(absPath, absolutePath).split('/').length;
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestAbsolutePath = absPath;
+      }
+    }
+
+    if (!closestAbsolutePath) {
       throw new Error(`Failed to find absolute path for ${currentContractName}.sol in repoMapping.`);
     }
 
-    if (currentAbsolutePath.replace(relativePath, '') !== '/') {
-      return path.resolve('/', relativePath);
-    }
-
-    const absolutePath = path.resolve(path.dirname(currentAbsolutePath), relativePath);
-    return absolutePath;
+    return closestAbsolutePath;
   }
 }
 
