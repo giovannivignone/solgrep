@@ -315,6 +315,12 @@ export class FunctionDef {
    * */
   getRawFunctionString(func: FunctionCall, repoMapping?: { [relativePathName: string]: string }): string;
 
+  getRawFunctionStartLine(func: FunctionCall, repoMapping?: { [relativePathName: string]: string }): number;
+
+  getRawFunctionEndLine(func: FunctionCall, repoMapping?: { [relativePathName: string]: string }): number;
+
+  getRawFunctionPragmaVersion(func: FunctionCall, repoMapping?: { [relativePathName: string]: string }): string;
+
   /**
    * @description filters out nodes in found that are defined in an omittable path
    * @param {FunctionCall[]} nodes - array of function call nodes

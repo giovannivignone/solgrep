@@ -453,6 +453,36 @@ class FunctionDef {
     return innerFunctionCalls;
   }
 
+  _getRawFunction(func, repoMapping = null) {
+    if (func.ast && func.ast.loc) {
+      return {
+        ast: func.ast,
+        content: this.contract.sourceUnit.content,
+      }
+    }
+
+    let funcName = getFunctionNameFromNode(func);
+    for (let func of this.contract.getFunctions()) {
+      if (func.getName() === funcName) {
+        return {
+          ast: func.ast,
+          content: this.contract.sourceUnit.content
+        }
+      }
+    }
+
+    const [foundFunc, importSourceUnit] = this.findFunctionInImports(funcName, repoMapping, []) ?? [null, null];
+
+    if (foundFunc) {
+      return {
+        ast: foundFunc.ast,
+        content: importSourceUnit.content
+      }
+    }
+
+    throw new Error(`Function ${funcName} is not defined in this SourceUnit or its imports.`);
+  }
+
   /**
    * @param {FunctionCall} func - the function node from the ast to fetch the source code for
    * @param {{[relativePathName: string]: string}} [repoMapping=null] - mapping of relativePaths to their content within
@@ -460,34 +490,37 @@ class FunctionDef {
    * @returns {string} - the raw function string
    * */
   getRawFunctionString(func, repoMapping = null) {
-    if (func.ast && func.ast.loc) {
-      const startLine = func.ast.loc.start.line;
-      const endLine = func.ast.loc.end.line;
-      const sourceLines = this.contract.sourceUnit.content.split('\n');
-      const functionLines = sourceLines.slice(startLine - 1, endLine);
-      return functionLines.join('\n');
-    }
-    let funcName = getFunctionNameFromNode(func);
-    for (let func of this.contract.getFunctions()) {
-      if (func.getName() === funcName) {
-        const startLine = func.ast.loc.start.line;
-        const endLine = func.ast.loc.end.line;
-        const sourceLines = this.contract.sourceUnit.content.split('\n');
-        const functionLines = sourceLines.slice(startLine - 1, endLine);
-        return functionLines.join('\n');
-      }
-    }
-    const [foundFunc, importSourceUnit] = this.findFunctionInImports(funcName, repoMapping, []) ?? [null, null];
+    const {ast, content} = this._getRawFunction(func, repoMapping);
+    const startLine = ast.loc.start.line;
+    const endLine = ast.loc.end.line;
+    const sourceLines = content.split('\n');
+    const functionLines = sourceLines.slice(startLine - 1, endLine);
+    return functionLines.join('\n');
+  }
 
-    if (foundFunc) {
-      const startLine = foundFunc.ast.loc.start.line;
-      const endLine = foundFunc.ast.loc.end.line;
-      const sourceLines = importSourceUnit.content.split('\n');
-      const functionLines = sourceLines.slice(startLine - 1, endLine);
-      return functionLines.join('\n');
+  getRawFunctionStartLine(func, repoMapping = null) {
+    const {ast} = this._getRawFunction(func, repoMapping);
+    return ast.loc.start.line;
+  }
+
+  getRawFunctionEndLine(func, repoMapping = null) {
+    const {ast} = this._getRawFunction(func, repoMapping);
+    return ast.loc.end.line;
+  }
+
+  getRawFunctionPragmaVersion(func, repoMapping = null) {
+    const {content} = this._getRawFunction(func, repoMapping);
+    const match = content.match(/pragma solidity\s*([^;]+);/);
+    if (!match) {
+      return '0.0.0';
+    }
+    const version = match[1].replace('=', '').replace(/[^\d. ]/g, '')
+    const versionParts = version.split(' ');
+    if (versionParts.length > 1) {
+      return versionParts[1];
     }
 
-    throw new Error(`Function ${funcName} is not defined in this SourceUnit or its imports.`);
+    return versionParts[0];
   }
 
   /**
