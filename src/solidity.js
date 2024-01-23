@@ -317,6 +317,24 @@ class FunctionDef {
     return !!this.getFunctionCalls(funcName, { findOne: true }).length;
   }
 
+  getFunctionSourcePathFromNode(node, repoMapping) {
+    const name = getFunctionNameFromNode(node);
+    for (const [path, content] of Object.entries(repoMapping)) {
+      if (content.includes(name)) {
+        const contractSourceUnit = new SourceUnit();
+        contractSourceUnit.fromSource(content);
+        for (let contract of contractSourceUnit.getContracts()) {
+          for (let func of contract.getFunctions()) {
+            if (func.getName() === name) {
+              return path;
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   /**
    * @param {string} funcName - the name of the function this function may call to
    * @param {object} opts - options
@@ -364,7 +382,7 @@ class FunctionDef {
    * @description get all function calls that are made inside this function (including
    * calls to imported functions but not including calls to solidity macros - see ../src/utils/macros.js)
    * @param {string[]} [omittablePaths=[]] - array of paths to omit
-   * @param {{[relativePathName: string]: string}} [repoMapping=null] - mapping of relativePaths to their content within 
+   * @param {{[relativePathName: string]: string}} [repoMapping=null] - mapping of relativePaths to their content within
    * the repo that this contract is defined paths, e.g. { './UniswapV3Pool.sol': 'pragma solidity ...' }
    * @returns {FunctionCall[]} - array of function call nodes
    * */
@@ -398,7 +416,7 @@ class FunctionDef {
    * @param {number} [depth=1] - the depth of function calls to recursively search for
    * @param {boolean} [includeImports=false] - include function calls to imported functions
    * @param {string[]} [omittableImportPaths=typicalLibraryNames] - array of paths to omit
-   * @param {{[relativePathName: string]: string}} [repoMapping=null] - mapping of relativePaths to their content within 
+   * @param {{[relativePathName: string]: string}} [repoMapping=null] - mapping of relativePaths to their content within
    * the repo that this contract is defined paths, e.g. { './UniswapV3Pool.sol': 'pragma solidity ...' }
    * @returns {FunctionCall[]} - array of function call nodes
    * */
@@ -433,7 +451,7 @@ class FunctionDef {
 
   /**
    * @param {FunctionCall} func - the function node from the ast to fetch the source code for
-   * @param {{[relativePathName: string]: string}} [repoMapping=null] - mapping of relativePaths to their content within 
+   * @param {{[relativePathName: string]: string}} [repoMapping=null] - mapping of relativePaths to their content within
    * the repo that this contract is defined paths, e.g. { './UniswapV3Pool.sol': 'pragma solidity ...' }
    * @returns {string} - the raw function string
    * */
@@ -455,8 +473,8 @@ class FunctionDef {
         return functionLines.join('\n');
       }
     }
-    const [foundFunc, importSourceUnit] = this.findFunctionInImports(funcName, repoMapping) ?? [null, null];
-  
+    const [foundFunc, importSourceUnit] = this.findFunctionInImports(funcName, repoMapping, []) ?? [null, null];
+
     if (foundFunc) {
       const startLine = foundFunc.ast.loc.start.line;
       const endLine = foundFunc.ast.loc.end.line;
@@ -464,25 +482,26 @@ class FunctionDef {
       const functionLines = sourceLines.slice(startLine - 1, endLine);
       return functionLines.join('\n');
     }
-  
+
     throw new Error(`Function ${funcName} is not defined in this SourceUnit or its imports.`);
   }
 
   /**
    * @description find a function in the imported source units
    * @param {string} funcName - the name of the function to find
-   * @param {{[relativePathName: string]: string}} [repoMapping] - mapping of relativePaths to their content within 
+   * @param {{[relativePathName: string]: string}} [repoMapping] - mapping of relativePaths to their content within
    * the repo that this contract is defined paths, e.g. { './UniswapV3Pool.sol': 'pragma solidity ...' }
    * @param {string[]} [omittablePaths=[]] - array of paths to omit
    * @returns {[FunctionDef, SourceUnit] | null} - the found function and sourceUnit or null if not found
    * */
-  findFunctionInImports(funcName, repoMapping, omittablePaths) {
+  findFunctionInImports(funcName, repoMapping, omittablePaths = []) {
     // The function is not defined in the current SourceUnit, so look it up in the imports
     for (let importNode of this.contract.sourceUnit?.imports ?? []) {
-      const importedSourceUnit = this.getSourceUnitFromImport(importNode, repoMapping);
       if (omittablePaths.some((omittablePath) => importNode.path.toLowerCase().includes(omittablePath.toLowerCase()))) {
         continue;
       }
+      const importedSourceUnit = this.getSourceUnitFromImport(importNode, repoMapping);
+
       for (let contract of importedSourceUnit.getContracts()) {
         for (let func of contract.getFunctions()) {
           if (func.getName() === funcName) {
@@ -492,7 +511,7 @@ class FunctionDef {
       }
     }
 
-    // Occassionally, the contract will pull in an interface named IERCO20.sol but the actual contract is ERC20.sol...
+    // Occasionally, the contract will pull in an interface named IERCO20.sol but the actual contract is ERC20.sol...
     // This is a hack to handle that case
     for (let importNode of this.contract.sourceUnit?.imports ?? []) {
       const importNodePath = importNode.path;
@@ -549,7 +568,7 @@ class FunctionDef {
    * @description filters out nodes in found that are defined in an omittable path
    * @param {FunctionCall[]} nodes - array of function call nodes
    * @param {string[]} omittablePaths - array of paths to omit
-   * @param {{[relativePathName: string]: string}} [repoMapping=null] - mapping of relativePaths to their content within 
+   * @param {{[relativePathName: string]: string}} [repoMapping=null] - mapping of relativePaths to their content within
    * the repo that this contract is defined paths, e.g. { './UniswapV3Pool.sol': 'pragma solidity ...' }
    * @returns {FunctionCall[]} - array of function call nodes
    * @private
@@ -560,20 +579,20 @@ class FunctionDef {
     }
     return nodes.filter((node) => {
       const funcName = getFunctionNameFromNode(node);
-  
+
       // Check if the function is defined in the current SourceUnit
       for (let func of this.contract.sourceUnit.getContracts().flatMap(contract => contract.getFunctions())) {
         if (func.getName() === funcName) {
           return true;  // Keep the node if the function is defined in the current SourceUnit
         }
       }
-  
+
       // Check if the function is defined in the imports
       let functionAndSourceUnit = this.findFunctionInImports(funcName, repoMapping, omittablePaths);
       if (functionAndSourceUnit) {
         return true;  // Keep the node if the function is defined in the imports and its path is not in omittablePaths
       }
-  
+
       return false;  // Exclude the node if the function is not defined in this SourceUnit or its imports
     });
   }
@@ -586,6 +605,11 @@ class FunctionDef {
     if (!currentAbsolutePath) {
       throw new Error(`Failed to find absolute path for ${currentContractName}.sol in repoMapping.`);
     }
+
+    if (currentAbsolutePath.replace(relativePath, '') !== '/') {
+      return path.resolve('/', relativePath);
+    }
+
     const absolutePath = path.resolve(path.dirname(currentAbsolutePath), relativePath);
     return absolutePath;
   }
