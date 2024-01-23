@@ -262,6 +262,9 @@ export class FunctionDef {
    * @returns {boolean} - true if the function makes a call to funcName
    * */
   callsTo(funcName: string): boolean;
+
+  getFunctionSourcePathFromNode(func: FunctionCall, repoMapping: { [relativePathName: string]: string }): string;
+
   /**
    * @param {string} funcName - the name of the function this function may call to
    * @param {object} opts - options
@@ -280,7 +283,7 @@ export class FunctionDef {
    * @param {number} [depth=1] - the depth of function calls to recursively search for
    * @param {boolean} [includeImports=false] - include function calls to imported functions
    * @param {string[]} [omittableImportPaths=typicalLibraryNames] - array of paths to omit
-   * @param {{[relativePathName: string]: string}} [repoMapping=null] - mapping of relativePaths to their content within 
+   * @param {{[relativePathName: string]: string}} [repoMapping=null] - mapping of relativePaths to their content within
    * the repo that this contract is defined paths, e.g. { './UniswapV3Pool.sol': 'pragma solidity ...' }
    * @returns {FunctionCall[]} - array of function call nodes
    * */
@@ -297,7 +300,7 @@ export class FunctionDef {
    * @description get all function calls that are made inside this function (including
    * calls to imported functions but not including calls to solidity macros - see ../src/utils/macros.js)
    * @param {string[]} [omittablePaths=[]] - array of paths to omit
-   * @param {{[relativePathName: string]: string}} [repoMapping=null] - mapping of relativePaths to their content within 
+   * @param {{[relativePathName: string]: string}} [repoMapping=null] - mapping of relativePaths to their content within
    * the repo that this contract is defined paths, e.g. { './UniswapV3Pool.sol': 'pragma solidity ...' }
    * @returns {FunctionCall[]} - array of function call nodes
    * */
@@ -322,7 +325,7 @@ export class FunctionDef {
   /**
    * @description find a function in the imported source units
    * @param {string} funcName - the name of the function to find
-   * @param {{[relativePathName: string]: string}} [repoMapping] - mapping of relativePaths to their content within 
+   * @param {{[relativePathName: string]: string}} [repoMapping] - mapping of relativePaths to their content within
    * the repo that this contract is defined paths, e.g. { './UniswapV3Pool.sol': 'pragma solidity ...' }
    * @param {string[]} [omittablePaths=[]] - array of paths to omit
    * @returns {[FunctionDef, SourceUnit] | null} - the found function and sourceUnit or null if not found
@@ -331,7 +334,7 @@ export class FunctionDef {
   private findFunctionInImports(funcName: string, repoMapping: {[relativePathName: string]: string}, omittablePaths?: string[]): [FunctionDef, SourceUnit] | null;
 
   private getSourceUnitFromImport(importNode, repoMapping): SourceUnit;
-  
+
   private getAbsolutePath(relativePath, currentContractName, repoMapping): string;
 }
 
