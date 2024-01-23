@@ -265,6 +265,8 @@ export class FunctionDef {
 
   getFunctionSourcePathFromNode(func: FunctionCall, repoMapping: { [relativePathName: string]: string }): string;
 
+  getFunctionNameFromNode(func: FunctionCall): string;
+
   /**
    * @param {string} funcName - the name of the function this function may call to
    * @param {object} opts - options

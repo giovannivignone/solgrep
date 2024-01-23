@@ -317,6 +317,10 @@ class FunctionDef {
     return !!this.getFunctionCalls(funcName, { findOne: true }).length;
   }
 
+  getFunctionNameFromNode(node) {
+    return getFunctionNameFromNode(node);
+  }
+
   getFunctionSourcePathFromNode(node, repoMapping) {
     const name = getFunctionNameFromNode(node);
     for (const [path, content] of Object.entries(repoMapping)) {
