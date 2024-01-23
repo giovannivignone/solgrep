@@ -265,6 +265,8 @@ export class FunctionDef {
 
   getFunctionSourcePathFromNode(func: FunctionCall, repoMapping: { [relativePathName: string]: string }): string;
 
+  getFunctionNameFromNode(func: FunctionCall): string;
+
   /**
    * @param {string} funcName - the name of the function this function may call to
    * @param {object} opts - options
@@ -312,6 +314,12 @@ export class FunctionDef {
    * @returns {string} - the raw function string
    * */
   getRawFunctionString(func: FunctionCall, repoMapping?: { [relativePathName: string]: string }): string;
+
+  getRawFunctionStartLine(func: FunctionCall, repoMapping?: { [relativePathName: string]: string }): number;
+
+  getRawFunctionEndLine(func: FunctionCall, repoMapping?: { [relativePathName: string]: string }): number;
+
+  getRawFunctionPragmaVersion(func: FunctionCall, repoMapping?: { [relativePathName: string]: string }): string;
 
   /**
    * @description filters out nodes in found that are defined in an omittable path
